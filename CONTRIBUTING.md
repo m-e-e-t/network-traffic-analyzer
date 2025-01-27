@@ -1,6 +1,3 @@
-### `CONTRIBUTING.md`
-```markdown
-```
 # Contributing to Network Traffic Analyzer
 
 ## How to Contribute
@@ -60,5 +57,3 @@
 - Use GitHub Issues
 - Provide detailed steps to reproduce
 - Include your environment details
-```
-```
