@@ -1,0 +1,30 @@
+{
+    "ddos_patterns": {
+        "threshold": 500,
+        "timeframe": 60,
+        "alert_level": "high"
+    },
+    "port_scan_patterns": {
+        "threshold": 20,
+        "timeframe": 15,
+        "alert_level": "medium"
+    },
+    "sql_injection_patterns": [
+        "UNION SELECT",
+        "DROP TABLE",
+        ";--"
+    ],
+    "xss_injection_patterns": [
+        "<script>",
+        "onerror=",
+        "javascript:"
+    ],
+    "suspicious_payloads": [
+        "eval(",
+        "exec(",
+        "system(",
+        "wget ",
+        "curl ",
+        "rm -rf"
+    ]
+}

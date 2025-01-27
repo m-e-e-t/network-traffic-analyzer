@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="description" content="Real-time Network Security Monitoring">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Network Traffic Analyzer Dashboard</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Chart.js for visualizations -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Custom Tailwind Configuration -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'dashboard-bg': '#f4f4f8',
+                        'card-bg': '#ffffff',
+                        'primary': '#3b82f6',
+                        'danger': '#ef4444',
+                        'warning': '#f59e0b'
+                    }
+                }
+            }
+        };
+    </script>
+</head>
+<body class="bg-dashboard-bg text-gray-800">
+    <header class="container mx-auto px-4 py-6">
+        <h1 class="text-3xl font-bold text-primary">Network Traffic Analyzer</h1>
+        <p class="text-gray-600">Real-time Network Security Monitoring</p>
+    </header>
+
+    <main class="container mx-auto px-4 py-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Active Threats -->
+            <section aria-labelledby="active-threats" class="bg-card-bg shadow-lg rounded-lg p-6">
+                <h2 id="active-threats" class="text-xl font-semibold mb-4 text-danger">Active Threats</h2>
+                <div id="threats-container" class="space-y-2"></div>
+            </section>
+
+            <!-- Traffic Overview -->
+            <section aria-labelledby="traffic-overview" class="bg-card-bg shadow-lg rounded-lg p-6">
+                <h2 id="traffic-overview" class="text-xl font-semibold mb-4 text-primary">
+                    Traffic Overview
+                </h2>
+                <canvas id="trafficChart" aria-label="Traffic Overview Chart" role="img"></canvas>
+            </section>
+
+            <!-- Active Connections -->
+            <section aria-labelledby="active-connections" class="bg-card-bg shadow-lg rounded-lg p-6">
+                <h2 id="active-connections" class="text-xl font-semibold mb-4">
+                    Active Connections
+                </h2>
+                <div>
+                    <table class="w-full text-sm">
+                        <thead>
+                            <tr class="bg-gray-100">
+                                <th class="p-2 text-left">Source IP</th>
+                                <th class="p-2 text-left">Destination</th>
+                                <th class="p-2 text-right">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="connections-table"></tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+
+        <!-- Detailed Logs Section -->
+        <section aria-labelledby="detailed-logs" class="mt-8 bg-card-bg shadow-lg rounded-lg p-6">
+            <h2 id="detailed-logs" class="text-xl font-semibold mb-4">
+                Detailed Network Logs
+            </h2>
+            <div id="network-logs" class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="bg-gray-100">
+                            <th class="p-2 text-left">Timestamp</th>
+                            <th class="p-2 text-left">Source</th>
+                            <th class="p-2 text-left">Destination</th>
+                            <th class="p-2 text-left">Protocol</th>
+                            <th class="p-2 text-right">Severity</th>
+                        </tr>
+                    </thead>
+                    <tbody id="logs-table"></tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <!-- Socket.io for Real-time Updates -->
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+    <script>
+        // Chart Initialization
+        const ctx = document.getElementById('trafficChart').getContext('2d');
+        const trafficChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Packet Volume',
+                    data: [],
+                    borderColor: 'rgb(75, 192, 192)',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // WebSocket Setup
+        const socket = io('http://localhost:5000');
+        socket.on('dashboard_update', function(data) {
+            data = JSON.parse(data);
+            updateThreats(data.threats);
+            updateTrafficChart(data.traffic);
+            updateConnections(data.connections);
+            updateLogs(data.logs);
+        });
+
+        function updateThreats(threats) {
+            const container = document.getElementById('threats-container');
+            container.innerHTML = threats.map(threat => `
+                <div class="bg-red-100 border-l-4 border-red-500 p-2">
+                    <p class="text-red-700">${threat.type} - ${threat.severity}</p>
+                </div>
+            `).join('');
+        }
+
+        function updateTrafficChart(trafficData) {
+            trafficChart.data.labels.push(new Date().toLocaleTimeString());
+            trafficChart.data.datasets[0].data.push(trafficData.packetCount);
+            trafficChart.update();
+        }
+
+        function updateConnections(connections) {
+            const table = document.getElementById('connections-table');
+            table.innerHTML = connections.map(conn => `
+                <tr class="border-b">
+                    <td class="p-2">${conn.sourceIP}</td>
+                    <td class="p-2">${conn.destination}</td>
+                    <td class="p-2 text-right">
+                        <span class="px-2 py-1 rounded ${conn.status === 'Secure' ? 'bg-green-200 text-green-800'
+                            : 'bg-red-200 text-red-800'}">
+                            ${conn.status}
+                        </span>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function updateLogs(logs) {
+            const table = document.getElementById('logs-table');
+            table.innerHTML = logs.map(log => `
+                <tr class="border-b">
+                    <td class="p-2">${log.timestamp}</td>
+                    <td class="p-2">${log.source}</td>
+                    <td class="p-2">${log.destination}</td>
+                    <td class="p-2">${log.protocol}</td>
+                    <td class="p-2 text-right">
+                        <span class="px-2 py-1 rounded ${getSeverityClass(log.severity)}">
+                            ${log.severity}
+                        </span>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function getSeverityClass(severity) {
+            switch(severity) {
+                case 'High':
+                    return 'bg-red-200 text-red-800';
+                case 'Medium':
+                    return 'bg-yellow-200 text-yellow-800';
+                case 'Low':
+                    return 'bg-green-200 text-green-800';
+                default:
+                    return 'bg-gray-200 text-gray-800';
+            }
+        }
+    </script>
+</body>
+</html>
