@@ -26,11 +26,6 @@ Network Traffic Analyzer is an advanced cybersecurity tool designed for real-tim
 - Pandas
 - NumPy
 
-## 🖥️ Screenshots
-
-![Dashboard Overview](images/dashboard_overview.png)
-![Threat Detection](images/threat_alert.png)
-
 ## 📦 Installation
 
 ### Prerequisites
@@ -42,7 +37,6 @@ Network Traffic Analyzer is an advanced cybersecurity tool designed for real-tim
 ```bash
 git clone https://github.com/m-e-e-t/network-traffic-analyzer.git
 cd network-traffic-analyzer
-bash setup.sh
 ```
 
 ## 🚀 Usage
