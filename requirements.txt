@@ -4,4 +4,4 @@ numpy==1.23.5
 tensorflow==2.12.0
 flask==2.3.2
 scikit-learn==1.2.2
-sqlite3==3.40.1
+sqlite3
